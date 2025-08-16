@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('category_post', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            // Nama tabel pivot biasanya gabungan nama model dalam urutan abjad.
+            $table->primary(['category_id', 'post_id']); // Primary key gabungan
+
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
         });
     }
 

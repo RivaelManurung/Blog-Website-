@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique(); // Nama kategori harus unik
+            $table->string('slug')->unique(); // Untuk URL yang SEO-friendly
+            $table->text('description')->nullable(); // Deskripsi singkat tentang kategori
+            $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('set null'); // Untuk sub-kategori
             $table->timestamps();
         });
     }

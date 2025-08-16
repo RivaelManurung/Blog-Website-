@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique(); // Nama tag harus unik
+            $table->string('slug')->unique(); // Untuk URL yang SEO-friendly
             $table->timestamps();
         });
     }

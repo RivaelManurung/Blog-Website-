@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
+
+            // Jika komentar harus dari user yang login
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+
+            // Untuk komentar bertingkat (balasan)
+            $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
+
+            $table->text('content');
+            $table->boolean('is_approved')->default(true); // Untuk moderasi komentar
             $table->timestamps();
         });
     }
