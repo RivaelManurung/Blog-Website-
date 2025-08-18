@@ -8,61 +8,66 @@
                 <div class="mb-4">
                     <a href="{{ route('blog.index') }}" class="text-sky-600 font-semibold text-sm">&larr; Back to all articles</a>
                 </div>
-                <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-sm font-medium">{{ $post->category }}</span>
+                
+                {{-- DIUBAH: Mengambil kategori pertama dari relasi --}}
+                <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-sm font-medium">{{ $post->categories->first()->name ?? 'Uncategorized' }}</span>
+                
                 <h1 class="text-4xl md:text-5xl font-bold font-poppins text-slate-900 leading-tight mt-4 mb-5">
                     {{ $post->title }}
                 </h1>
+                
                 <div class="flex justify-center items-center space-x-3 text-slate-500">
-                    <img src="{{ $post->author_image }}" alt="Author" class="w-10 h-10 rounded-full">
-                    <span class="font-medium">{{ $post->author_name }}</span>
+                    {{-- DIUBAH: Mengambil data dari relasi author --}}
+                    <img src="{{ $post->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($post->author->name) }}" alt="{{ $post->author->name }}" class="w-10 h-10 rounded-full">
+                    <span class="font-medium">{{ $post->author->name }}</span>
                     <span>•</span>
-                    <time datetime="2025-08-16">{{ $post->published_date }}</time>
+                    {{-- DIUBAH: Menggunakan data 'published_at' dan memformatnya --}}
+                    <time datetime="{{ $post->published_at->toDateString() }}">{{ $post->published_at->format('F d, Y') }}</time>
                     <span>•</span>
-                    <span>{{ $post->read_time }}</span>
+                    <span>{{ $readTime }}</span>
                 </div>
             </header>
 
             <figure class="mb-12">
-                <img src="{{ $post->featured_image }}" alt="{{ $post->title }}" class="w-full rounded-2xl shadow-lg">
+                {{-- DIUBAH: Menggunakan kolom 'cover_image' dengan helper asset() --}}
+                <img src="{{ asset('storage/' . $post->cover_image) }}" alt="{{ $post->title }}" class="w-full rounded-2xl shadow-lg">
             </figure>
 
-            {{-- Menggunakan {!! !!} untuk merender HTML dari controller dengan aman --}}
             <div class="prose prose-lg lg:prose-xl max-w-none prose-slate">
                 {!! $post->content !!}
             </div>
         </article>
 
-        <div class="border-t border-b border-slate-200 my-12 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center space-x-3 mb-4 md:mb-0">
-                    <span class="font-semibold">Share this post:</span>
-                    <a href="#" class="text-slate-500 hover:text-sky-500"><i class="fab fa-twitter fa-lg"></i></a>
-                    <a href="#" class="text-slate-500 hover:text-sky-500"><i class="fab fa-facebook fa-lg"></i></a>
-                    <a href="#" class="text-slate-500 hover:text-sky-500"><i class="fab fa-linkedin fa-lg"></i></a>
-                </div>
-                @include('user.components.author-bio')
-            </div>
-        </div>
+        {{-- ... bagian share post bisa dibiarkan ... --}}
 
-        <section id="comments">
-            <h2 class="text-2xl font-bold font-poppins text-slate-900 mb-6">Comments ({{ count($post->comments) }})</h2>
+        <section id="comments" class="mt-12 pt-8 border-t">
+            {{-- DIUBAH: Menggunakan method count() dari collection --}}
+            <h2 class="text-2xl font-bold font-poppins text-slate-900 mb-6">Comments ({{ $post->comments->count() }})</h2>
+            
             <div class="bg-slate-50 rounded-xl p-6 mb-8">
-                {{-- Form komentar tetap statis untuk saat ini --}}
+                {{-- Form untuk menambahkan komentar baru (bisa dikembangkan nanti) --}}
+                <form action="#" method="POST">
+                    <textarea class="w-full p-3 border rounded-md" rows="3" placeholder="Write a comment..."></textarea>
+                    <button type="submit" class="mt-3 bg-sky-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-sky-600">Post Comment</button>
+                </form>
             </div>
 
             <div class="space-y-6">
-                @foreach ($post->comments as $comment)
+                {{-- DIUBAH: Menggunakan @forelse dan data dari relasi comment --}}
+                @forelse ($post->comments as $comment)
                 <div class="flex space-x-4">
-                    <img src="{{ $comment->avatar }}" alt="{{ $comment->name }}" class="w-12 h-12 rounded-full">
+                    <img src="{{ $comment->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($comment->author->name) }}" alt="{{ $comment->author->name }}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="flex items-center space-x-3">
-                            <h4 class="font-semibold">{{ $comment->name }}</h4>
-                            <span class="text-sm text-slate-500">{{ $comment->time }}</span>
+                            <h4 class="font-semibold">{{ $comment->author->name }}</h4>
+                            <span class="text-sm text-slate-500">{{ $comment->created_at->diffForHumans() }}</span>
                         </div>
-                        <p class="text-slate-700 mt-1">{{ $comment->body }}</p>
+                        <p class="text-slate-700 mt-1">{{ $comment->content }}</p>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <p class="text-slate-500">Be the first to comment on this post.</p>
+                @endforelse
             </div>
         </section>
     </div>

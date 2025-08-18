@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('user.layouts.app')
 @section('content')
 <div class="container mx-auto pt-32 pb-12 flex justify-center">
     <div class="w-full max-w-md">

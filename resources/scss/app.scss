@@ -1,0 +1,70 @@
+// 1. Import Google Fonts (Inter adalah font modern yang sangat populer)
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+// 2. Override variabel dasar Tabler
+:root {
+    --tblr-font-sans-serif: 'Inter', sans-serif;
+    --tblr-body-bg: #f5f7fb; // Background lebih lembut
+    --tblr-card-box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --tblr-card-border-radius: 0.5rem; // Rounded corner lebih besar
+    --tblr-card-border-color: #e5e7eb;
+    --tblr-primary: #2563eb; // Warna biru yang lebih kaya
+}
+
+// Import Tabler SCSS & Icons
+@import "../../node_modules/@tabler/core/dist/scss/tabler.scss";
+@import "../../node_modules/@tabler/icons-webfont/tabler-icons.css";
+@import "../../node_modules/tom-select/dist/css/tom-select.bootstrap5.css";
+
+// 3. Custom Styles
+body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+// Desain ulang Card
+.card {
+    border: 1px solid var(--tblr-card-border-color);
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+}
+
+// Desain ulang Tombol Utama
+.btn-primary {
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+}
+
+// Custom File Upload
+.file-upload-wrapper {
+    position: relative;
+    border: 2px dashed #dce2e8;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+        border-color: var(--tblr-primary);
+        background-color: #fbfdff;
+    }
+
+    input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+}

@@ -9,22 +9,25 @@
         </div>
 
         {{-- Menampilkan data Artikel Unggulan secara dinamis --}}
+        @if ($featuredPost)
         <section class="mb-16">
             <h2 class="text-2xl font-bold font-poppins text-slate-900 mb-6">Featured Post</h2>
-            <a href="{{ $featuredPost->link }}" class="block bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 card-hover group grid md:grid-cols-2 items-center">
-                <img src="{{ $featuredPost->image }}" alt="{{ $featuredPost->title }}" class="w-full h-64 md:h-full object-cover">
+            {{-- Karena sudah di dalam @if, kode di bawah ini dijamin aman --}}
+            <a href="{{ route('blog.show', $featuredPost) }}" class="block bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 card-hover group grid md:grid-cols-2 items-center">
+                <img src="{{ asset('storage/' . $featuredPost->cover_image) }}" alt="{{ $featuredPost->title }}" class="w-full h-64 md:h-full object-cover">
                 <div class="p-8">
-                    <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-xs font-medium">{{ $featuredPost->category }}</span>
+                    <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-xs font-medium">{{ $featuredPost->categories->first()->name ?? 'Uncategorized' }}</span>
                     <h3 class="text-2xl lg:text-3xl font-semibold text-slate-900 leading-tight mt-4 mb-3 group-hover:text-sky-600 transition-colors">
                         {{ $featuredPost->title }}
                     </h3>
                     <p class="text-slate-600 mb-4">
-                        {{ $featuredPost->excerpt }}
+                        {{ $featuredPost->excerpt ?? Str::limit(strip_tags($featuredPost->content), 150) }}
                     </p>
                     <span class="font-semibold text-sky-600">Read Full Story →</span>
                 </div>
             </a>
         </section>
+        @endif
 
         {{-- Menampilkan data Artikel Terbaru dengan looping --}}
         <section>
@@ -38,7 +41,7 @@
 
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach ($latestPosts as $post)
-                    @include('user.components.article-card', [
+                    @include('user.components.article-card-blog', [
                         'image' => $post->image,
                         'category' => $post->category,
                         'title' => $post->title,

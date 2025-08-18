@@ -10,13 +10,14 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log; // Penting untuk logging
 
 class PostController extends Controller
 {
     public function index()
     {
-        // Eager loading ('user', 'categories') untuk menghindari N+1 problem
-        $posts = Post::with('user', 'categories')->latest()->paginate(15);
+        // Pastikan eager loading menggunakan nama relasi yang benar ('categories')
+        $posts = Post::with('author', 'categories')->latest()->paginate(15);
         return view('admin.posts.index', compact('posts'));
     }
 
@@ -29,37 +30,41 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            Log::info('Data validasi untuk store post diterima:', $validated);
 
-        // Handle file upload
-        $imagePath = null;
-        if ($request->hasFile('cover_image')) {
-            $imagePath = $request->file('cover_image')->store('posts_covers', 'public');
+            $imagePath = null;
+            if ($request->hasFile('cover_image')) {
+                $imagePath = $request->file('cover_image')->store('posts_covers', 'public');
+            }
+
+            // 1. Buat post TANPA category_id
+            $post = auth()->user()->posts()->create([
+                'title' => $validated['title'],
+                'slug' => Str::slug($validated['title']),
+                'content' => $validated['content'],
+                'status' => $validated['status'],
+                'cover_image' => $imagePath,
+                'published_at' => ($validated['status'] == 'published') ? now() : null,
+            ]);
+
+            // 2. Lampirkan (attach) relasi ke tabel pivot
+            if (!empty($validated['categories'])) {
+                $post->categories()->attach($validated['categories']);
+            }
+            if (!empty($validated['tags'])) {
+                $post->tags()->attach($validated['tags']);
+            }
+            
+            Log::info('Post berhasil dibuat dengan ID: ' . $post->id);
+            return redirect()->route('admin.posts.index')->with('success', 'Post berhasil dibuat.');
+
+        } catch (\Exception $e) {
+            // Jika terjadi error, catat di log dan kembalikan ke user dengan pesan error
+            Log::error('Gagal membuat post: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan post. Silakan periksa log untuk detail.')->withInput();
         }
-
-        // Buat post baru
-        $post = auth()->user()->posts()->create([
-            'title' => $validated['title'],
-            'slug' => Str::slug($validated['title']),
-            'content' => $validated['content'],
-            'status' => $validated['status'],
-            'cover_image' => $imagePath,
-            'published_at' => ($validated['status'] == 'published') ? now() : null,
-        ]);
-
-        // Attach relasi many-to-many
-        $post->categories()->attach($validated['categories']);
-        if (!empty($validated['tags'])) {
-            $post->tags()->attach($validated['tags']);
-        }
-
-        return redirect()->route('admin.posts.index')->with('success', 'Post berhasil dibuat.');
-    }
-
-    public function show(Post $post)
-    {
-        // Menampilkan detail post
-        return view('admin.posts.show', compact('post'));
     }
 
     public function edit(Post $post)
@@ -71,41 +76,44 @@ class PostController extends Controller
 
     public function update(UpdatePostRequest $request, Post $post)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            $imagePath = $post->cover_image;
 
-        $imagePath = $post->cover_image;
-        if ($request->hasFile('cover_image')) {
-            // Hapus gambar lama jika ada
-            if ($post->cover_image) {
-                Storage::disk('public')->delete($post->cover_image);
+            if ($request->hasFile('cover_image')) {
+                if ($post->cover_image) {
+                    Storage::disk('public')->delete($post->cover_image);
+                }
+                $imagePath = $request->file('cover_image')->store('posts_covers', 'public');
             }
-            $imagePath = $request->file('cover_image')->store('posts_covers', 'public');
+
+            // 1. Update data utama post
+            $post->update([
+                'title' => $validated['title'],
+                'slug' => Str::slug($validated['title']),
+                'content' => $validated['content'],
+                'status' => $validated['status'],
+                'cover_image' => $imagePath,
+                'published_at' => ($validated['status'] == 'published' && !$post->published_at) ? now() : $post->published_at,
+            ]);
+
+            // 2. Sinkronkan (sync) relasi di tabel pivot. Ini akan menghapus yang lama dan menambah yang baru.
+            $post->categories()->sync($validated['categories'] ?? []);
+            $post->tags()->sync($validated['tags'] ?? []);
+
+            return redirect()->route('admin.posts.index')->with('success', 'Post berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Gagal update post: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui post. Silakan periksa log untuk detail.')->withInput();
         }
-
-        $post->update([
-            'title' => $validated['title'],
-            'slug' => Str::slug($validated['title']),
-            'content' => $validated['content'],
-            'status' => $validated['status'],
-            'cover_image' => $imagePath,
-            'published_at' => ($validated['status'] == 'published' && !$post->published_at) ? now() : $post->published_at,
-        ]);
-
-        // Sync relasi (sync lebih cocok untuk update)
-        $post->categories()->sync($validated['categories']);
-        $post->tags()->sync($validated['tags'] ?? []);
-
-        return redirect()->route('admin.posts.index')->with('success', 'Post berhasil diperbarui.');
     }
 
     public function destroy(Post $post)
     {
-        // Hapus gambar dari storage
         if ($post->cover_image) {
             Storage::disk('public')->delete($post->cover_image);
         }
-        
-        $post->delete(); // Ini akan melakukan soft delete jika model menggunakan trait SoftDeletes
+        $post->delete();
         return redirect()->route('admin.posts.index')->with('success', 'Post berhasil dihapus.');
     }
 }
