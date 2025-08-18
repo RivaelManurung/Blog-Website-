@@ -60,9 +60,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js" defer></script>
     
     {{-- JS untuk Tom-Select & TinyMCE --}}
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    {{-- INI YANG BARU DENGAN API KEY ANDA --}}
+    <script src="https://cdn.tiny.cloud/1/9im15an3tedjirh961zoe09vst3o1m0e934tt4skutla7su1/tinymce/8/tinymce.min.js" referrerpolicy="origin"></script>
 
     @stack('scripts')
+
 </body>
 </html>
