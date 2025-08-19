@@ -71,10 +71,4 @@ class Post extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
-
-    public function comments()
-    {
-        // Mengambil komentar utama (yang tidak memiliki parent_id)
-        return $this->hasMany(Comment::class)->whereNull('parent_id');
-    }
 }

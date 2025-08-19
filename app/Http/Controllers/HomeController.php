@@ -1,36 +1,26 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
+use App\Models\Post; // Import model Post
 
 class HomeController extends Controller
 {
+    /**
+     * Menampilkan halaman beranda.
+     */
     public function index()
     {
-        // Data artikel untuk ditampilkan di halaman utama
-        $articles = [
-            [
-                'image' => 'https://picsum.photos/seed/tech1/600/400',
-                'category' => 'Technology',
-                'title' => 'The Future of Web Development',
-                'link' => '/blog/the-future-of-web-development',
-                'categoryColor' => 'bg-sky-100 text-sky-800'
-            ],
-            [
-                'image' => 'https://picsum.photos/seed/ai2/600/400',
-                'category' => 'AI & ML',
-                'title' => 'A Beginner\'s Guide to Machine Learning',
-                'link' => '#',
-                'categoryColor' => 'bg-sky-100 text-sky-800'
-            ],
-            [
-                'image' => 'https://picsum.photos/seed/design3/600/400',
-                'category' => 'Design',
-                'title' => 'Modern UI/UX Principles',
-                'link' => '#',
-                'categoryColor' => 'bg-sky-100 text-sky-800'
-            ],
-        ];
+        // DIUBAH: Ambil HANYA 3 post terbaru yang statusnya "published".
+        // Kita tidak lagi membutuhkan logika featuredPost di sini.
+        // Ganti paginate() dengan take(3)->get()
+        $latestPosts = Post::where('status', 'published')
+                            ->latest('published_at')
+                            ->take(3) // Ambil hanya 3 post
+                            ->get();
 
-        return view('user.home', ['articles' => $articles]);
+        // Kirim data ke view. Nama variabelnya kita samakan saja.
+        return view('user.home', ['latestPosts' => $latestPosts]);
     }
 }

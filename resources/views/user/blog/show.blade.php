@@ -38,38 +38,34 @@
             </div>
         </article>
 
-        {{-- ... bagian share post bisa dibiarkan ... --}}
-
-        <section id="comments" class="mt-12 pt-8 border-t">
-            {{-- DIUBAH: Menggunakan method count() dari collection --}}
-            <h2 class="text-2xl font-bold font-poppins text-slate-900 mb-6">Comments ({{ $post->comments->count() }})</h2>
+<div class="border-t border-b border-slate-200 my-12 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="flex items-center space-x-3 mb-4 md:mb-0">
+            <span class="font-semibold">Share this post:</span>
             
-            <div class="bg-slate-50 rounded-xl p-6 mb-8">
-                {{-- Form untuk menambahkan komentar baru (bisa dikembangkan nanti) --}}
-                <form action="#" method="POST">
-                    <textarea class="w-full p-3 border rounded-md" rows="3" placeholder="Write a comment..."></textarea>
-                    <button type="submit" class="mt-3 bg-sky-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-sky-600">Post Comment</button>
-                </form>
-            </div>
+            {{-- DIUBAH: Link share dinamis untuk setiap platform --}}
+            
+            <a href="https://twitter.com/intent/tweet?url={{ urlencode(route('blog.show', $post)) }}&text={{ urlencode($post->title) }}" 
+               target="_blank" rel="noopener noreferrer" 
+               class="text-slate-500 hover:text-sky-500" title="Share on Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+            </a>
 
-            <div class="space-y-6">
-                {{-- DIUBAH: Menggunakan @forelse dan data dari relasi comment --}}
-                @forelse ($post->comments as $comment)
-                <div class="flex space-x-4">
-                    <img src="{{ $comment->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($comment->author->name) }}" alt="{{ $comment->author->name }}" class="w-12 h-12 rounded-full">
-                    <div>
-                        <div class="flex items-center space-x-3">
-                            <h4 class="font-semibold">{{ $comment->author->name }}</h4>
-                            <span class="text-sm text-slate-500">{{ $comment->created_at->diffForHumans() }}</span>
-                        </div>
-                        <p class="text-slate-700 mt-1">{{ $comment->content }}</p>
-                    </div>
-                </div>
-                @empty
-                <p class="text-slate-500">Be the first to comment on this post.</p>
-                @endforelse
-            </div>
-        </section>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('blog.show', $post)) }}" 
+               target="_blank" rel="noopener noreferrer" 
+               class="text-slate-500 hover:text-sky-500" title="Share on Facebook">
+               <i class="fab fa-facebook fa-lg"></i>
+            </a>
+
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ urlencode(route('blog.show', $post)) }}&title={{ urlencode($post->title) }}&summary={{ urlencode($post->excerpt ?? Str::limit(strip_tags($post->content), 100)) }}"
+               target="_blank" rel="noopener noreferrer" 
+               class="text-slate-500 hover:text-sky-500" title="Share on LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+            </a>
+
+        </div>
+        @include('user.components.author-bio')
     </div>
+</div>    </div>
 </div>
 @endsection

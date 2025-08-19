@@ -15,67 +15,78 @@ class PostSeeder extends Seeder
      */
     public function run(): void
     {
+        // Hapus data post lama untuk menghindari duplikat
+        Post::query()->delete();
+
         // 1. Ambil user pertama sebagai penulis
         $author = User::first();
         if (!$author) {
-            // Jika tidak ada user, buat satu
             $author = User::factory()->create([
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
             ]);
         }
 
-        // 2. Ambil beberapa kategori untuk dilampirkan ke post
-        $categories = Category::take(3)->get();
+        // 2. Ambil SEMUA kategori yang ada untuk variasi yang lebih baik
+        $categories = Category::all();
         if ($categories->isEmpty()) {
-            // Jika tidak ada kategori, buat beberapa
-            $categories = Category::factory()->count(3)->create();
+            $categories = Category::factory()->count(5)->create();
         }
 
-        // 3. Buat beberapa contoh post
+        // 3. Data untuk 15 post
         $posts = [
-            [
-                'title' => 'Exploring the Depths of Laravel 11',
-                'content' => '<p>Laravel 11 comes with a plethora of new features designed to enhance developer productivity and application performance. In this article, we will take a deep dive into some of the most exciting updates, including the new application structure, streamlined configuration, and the powerful additions to the Artisan console.</p><p>We will explore real-world examples to demonstrate how these changes can be leveraged in your projects. From building APIs with new health checks to understanding the revamped scheduler, this guide has you covered.</p>',
-                'is_featured' => true,
-            ],
-            [
-                'title' => 'A Guide to Modern CSS with Tailwind',
-                'content' => '<p>Tailwind CSS has revolutionized the way we write CSS. By providing utility-first classes, it allows for rapid UI development without ever leaving your HTML. This guide will walk you through the fundamentals of Tailwind, from setting it up in a Laravel project to building complex, responsive components.</p><p>Forget writing custom CSS files for every little thing. Learn how to leverage the power of utilities to create beautiful and consistent designs efficiently.</p>',
-                'is_featured' => false,
-            ],
-            [
-                'title' => 'Understanding Asynchronous JavaScript',
-                'content' => '<p>JavaScript is single-threaded, but its asynchronous nature is what makes it powerful for web applications. This post breaks down the concepts of callbacks, Promises, and async/await.</p><p>We will look at practical examples to understand how to handle asynchronous operations gracefully, avoiding common pitfalls like "callback hell" and making your code cleaner and more readable.</p>',
-                'is_featured' => false,
-            ],
-            [
-                'title' => 'Introduction to Vue.js for Beginners',
-                'content' => '<p>Vue.js is a progressive JavaScript framework that is approachable, versatile, and performant. If you are new to frontend frameworks, Vue is an excellent place to start. This tutorial covers the core concepts, including the Vue instance, template syntax, computed properties, and event handling.</p>',
-                'is_featured' => false,
-            ],
-            [
-                'title' => 'Database Design Best Practices',
-                'content' => '<p>A well-designed database is the backbone of any robust application. This article discusses key principles of database design, including normalization, choosing the right data types, and indexing strategies.</p><p>Learn how to plan your schema to ensure data integrity, scalability, and performance from the get-go.</p>',
-                'is_featured' => false,
-            ]
+            // Featured Posts
+            ['title' => 'Exploring the Depths of Laravel 11', 'is_featured' => true],
+            ['title' => 'A Comprehensive Guide to Modern CSS with Tailwind', 'is_featured' => true],
+            ['title' => 'Getting Started with Artificial Intelligence in PHP', 'is_featured' => true],
+
+            // Regular Posts
+            ['title' => 'Understanding Asynchronous JavaScript for Backend Developers'],
+            ['title' => 'Introduction to Vue.js 3 for Beginners'],
+            ['title' => 'Database Design Best Practices for Scalable Applications'],
+            ['title' => 'My Top 10 Productivity Hacks for Developers in 2025'],
+            ['title' => 'The Core Principles of Clean UI/UX Design'],
+            ['title' => 'Building a RESTful API with Laravel Sanctum'],
+            ['title' => 'Advanced Eloquent ORM Techniques You Should Know'],
+            ['title' => 'PHP 8.3: What\'s New and Why It Matters'],
+            ['title' => 'Optimizing Your Web Applications for Peak Performance'],
+            ['title' => 'A Deep Dive into Machine Learning Models'],
+            ['title' => 'How to Structure a Large-Scale Laravel Project'],
+            ['title' => 'From Figma to Code: A UI/UX Implementation Guide'],
         ];
 
+        // Looping dan buat post
         foreach ($posts as $postData) {
+            $title = $postData['title'];
+
+            // Konten dinamis berdasarkan judul
+            $content = "
+                <p>This is a detailed article about <strong>{$title}</strong>. In this post, we will explore the fundamental concepts, best practices, and advanced techniques related to this topic. Whether you are a beginner or an expert, you will find valuable insights here.</p>
+                <p>We will cover several key areas, including initial setup, core features, and real-world implementation examples. We'll also look at common pitfalls and how to avoid them. Join us as we take a deep dive into the fascinating world of {$title} and unlock its full potential for your projects.</p>
+                <h3>Key Takeaways</h3>
+                <ul>
+                    <li>Understanding the core principles of {$title}.</li>
+                    <li>Step-by-step guide for implementation.</li>
+                    <li>Advanced tips for optimization and scalability.</li>
+                </ul>
+            ";
+
             $post = Post::create([
-                'title' => $postData['title'],
-                'slug' => Str::slug($postData['title']),
-                'content' => $postData['content'],
-                'excerpt' => Str::limit(strip_tags($postData['content']), 150),
+                'title' => $title,
+                'slug' => Str::slug($title),
+                'content' => $content,
+                'excerpt' => Str::limit(strip_tags($content), 150),
                 'user_id' => $author->id,
                 'status' => 'published',
-                'is_featured' => $postData['is_featured'],
-                'published_at' => now(),
-                'cover_image' => 'posts_covers/default.jpg' // Pastikan Anda punya gambar default di storage/app/public/posts_covers/
+                'is_featured' => $postData['is_featured'] ?? false, // Default is_featured ke false jika tidak di-set
+                'published_at' => now()->subDays(rand(1, 30)), // Publikasi dalam 30 hari terakhir
+                'cover_image' => 'posts_covers/default.jpg'
             ]);
 
-            // 4. Lampirkan kategori ke setiap post yang dibuat
-            $post->categories()->attach($categories->random(rand(1, 2))->pluck('id')->toArray());
+            // Lampirkan 1 sampai 3 kategori secara acak ke setiap post
+            $post->categories()->attach(
+                $categories->random(rand(1, 3))->pluck('id')->toArray()
+            );
         }
     }
 }

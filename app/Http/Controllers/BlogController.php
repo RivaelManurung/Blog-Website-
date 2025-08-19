@@ -15,10 +15,10 @@ class BlogController extends Controller
     {
         // Ambil 1 post terbaru yang ditandai sebagai "featured" dan sudah "published"
         $featuredPost = Post::where('is_featured', true)
-                            ->where('status', 'published')
-                            ->with('categories', 'author') // Mengambil relasi untuk efisiensi
-                            ->latest('published_at')
-                            ->first();
+            ->where('status', 'published')
+            ->with('categories', 'author') // Mengambil relasi untuk efisiensi
+            ->latest('published_at')
+            ->first();
 
         // Ambil semua post lain yang sudah "published"
         $query = Post::where('status', 'published')->with('categories', 'author');
@@ -45,7 +45,7 @@ class BlogController extends Controller
         }
 
         // Ambil relasi yang dibutuhkan
-    $post->load('author', 'categories', 'tags', 'comments.author');
+        $post->load('author', 'categories', 'tags');
 
         // Hitung perkiraan waktu baca
         $wordCount = Str::wordCount(strip_tags($post->content));
